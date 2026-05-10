@@ -1,0 +1,69 @@
+llm:
+  base_url: "http://127.0.0.1:8080/v1"
+  #base_url: "http://127.0.0.1:11434/v1"
+  model: "minimax-m2.7"
+  #model: "minimax-m2.7:cloud"
+
+  api_key: "no-key-needed"
+  context_size: 60000
+  reasoning_format: "deepseek"
+  temperature: 1.0
+  max_tokens: 32768
+  cache_dir: "./logs/llm_cache"
+
+agents:
+  max_iterations: 100
+  # thinking_budget is ignored by llama-server for Qwen3.5 — model always reasons regardless
+
+workspace:
+  root: "./workspace"
+  logs_dir: "./logs"
+
+logging:
+  level: "DEBUG"
+  log_to_terminal: true
+  show_llm_output: true
+
+features:
+  mode: "coding"                # "coding" = full multi-agent pipeline; "assistant" = single-task ReAct mode
+  git_checkpoints: true
+  venv_auto: true
+  max_task_retries: 5
+  stop_on_first_failure: true
+  concurrent_llm_limit: 1
+
+  # --- System Assistant Settings ---
+  assistant:
+    # Require user confirmation before executing these command patterns
+    # (interactive prompt in terminal)
+    confirm_commands: true
+    # Patterns that ALWAYS require confirmation regardless of context
+    danger_patterns:
+      - "rm -rf /"
+      - "rm -rf /*"
+      - "mkfs"
+      - "dd if="
+      - "> /etc/"
+      - "> /boot/"
+      - "curl .*| *sh"
+      - "wget .*| *sh"
+      - "sudo rm"
+      - "chown -R /"
+      - "chmod -R /"
+    # Patterns that are allowed without confirmation
+    safe_patterns:
+      - "ls"
+      - "cat"
+      - "find"
+      - "grep"
+      - "ps"
+      - "df"
+      - "du"
+      - "journalctl"
+      - "dmesg"
+      - "ip"
+      - "ping"
+      - "curl -I"
+      - "wget -O"
+    # Max chars to stream back for assistant mode (0 = use default)
+    max_output_chars: 15000
