@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""new_AI_CODER — local multi-agent AI programmer."""
-
 import asyncio
 import sys
 import yaml
