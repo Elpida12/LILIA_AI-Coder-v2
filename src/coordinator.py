@@ -181,7 +181,6 @@ class Coordinator:
         memory = ProjectMemory(project_name, str(self.workspace))
         was_loaded = memory.load()
         memory.update_section("project", {"name": project_name, "description": user_prompt})
-        # Fix: Reset stale memory from previous runs so architect designs fresh tasks.
         # Skip reset when resuming — we need the existing design and task history.
         if was_loaded and not is_resume:
             self.logger.info("Resetting stale memory from previous run")
@@ -339,7 +338,6 @@ class Coordinator:
         ])
 
         if entry and (project_root / entry).exists():
-            # Fix: Use different timeouts for different application types
             # GUI applications like VPython need longer startup times
             import os
             is_gui_app = False
@@ -398,7 +396,6 @@ class Coordinator:
                 timeout = 60 if is_gui_app else 30
                 proc = shell.run(f"python {entry}", timeout=timeout)
                 self.logger.info(f"Entry module check (timeout: {timeout}s):\n{proc[:500]}")
-                # Fix #3: Parse and check exit code
                 exit_code = shell.parse_exit_code(proc)
                 # Exit code -1 means the process was killed by timeout (e.g. interactive
                 # CLI apps that wait on input()). Only treat positive exit codes as
@@ -524,12 +521,6 @@ class Coordinator:
 
             if attempt > 1:
                 self.logger.info(f"[{tid}] Retry {attempt}/{max_retries}")
-
-                # Fix #6: Differentiate between truncation/exhaustion failures and
-                # logic failures. For truncation, preserve partial work.
-                # Fix #3B: Also preserve work on LLM infrastructure failures
-                # (message history corruption, 400 errors) — these are scaffolding
-                # bugs, not LLM logic errors. The partial code is still valid.
                 prev_err = retry_errors.get(tid, "")
                 is_truncation_failure = (
                     "truncation_loop" in prev_err
@@ -583,7 +574,6 @@ class Coordinator:
 
             task["type"] = "implement"
             impl_result = await self._run_implementer(tools, memory, task)
-            # Fix #6B: Log truncation_loop status specifically
             if impl_result["status"] == "truncation_loop":
                 self.logger.warning(
                     f"[{tid}] Implementer hit truncation loop. Will preserve partial work on retry."
@@ -599,7 +589,6 @@ class Coordinator:
             tools.fs.commit(current_files)
             git.checkpoint(f"{tid} implemented")
 
-            # VERIFY
             verify_result = await self._run_verifier(tools, memory, task, current_files, project_root)
             if verify_result["status"] != "complete":
                 self.logger.error(f"[{tid}] Verifier did not complete")
@@ -759,10 +748,6 @@ class Coordinator:
                 ))
                 self.logger.info("venv created")
             
-            # Install base dev packages into the venv
-            # Note: --break-system-packages is for system Python (PEP 668),
-            # NOT for virtual environments. Inside a venv all packages are
-            # user-managed by definition, so we never use that flag here.
             await loop.run_in_executor(None, lambda: subprocess.run(
                 [pip, "install", "pytest", "pytest-timeout", "ruff", "mypy"],
                 check=True, capture_output=True, text=True,
