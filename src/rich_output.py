@@ -1,5 +1,4 @@
-"""Rich-based terminal styling for AI Coder.
-
+"""Rich-based terminal styling
 Provides a styled Console wrapper and reusable formatters for
 LLM reasoning, responses, tool calls, and phase headers.
 """
