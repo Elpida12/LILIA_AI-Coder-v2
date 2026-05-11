@@ -204,10 +204,6 @@ class AgentBase:
         assistant message with a matching tool_call_id. Drop tool-role messages
         without a matching assistant tool call to prevent history corruption.
         
-        Fix: enforce STRICT ORDERING — tool-role messages must appear AFTER
-        their matching assistant. This prevents collision bugs where trimmed
-        messages produce tool-before-assistant sequences that pass a naive
-        set-membership check but fail the LLM server's sequential validation.
         """
         valid_messages = []
         # Map tool_call_id -> index of the assistant message that owns it.
@@ -243,8 +239,6 @@ class AgentBase:
         Returns a normalized string that captures the essence of any errors,
         or empty string if no errors found. Used to detect when the agent is
         stuck in a loop making the same mistake.
-        
-        Fix: Differentiate between environment errors (path issues) and logic errors.
         """
         patterns = []
         for tr in tool_results:
@@ -254,7 +248,6 @@ class AgentBase:
             
             # Check for environment-specific errors that should not trigger convergence
             if "No such file or directory" in result:
-                # This is likely an environment/path issue, not a repeated coding mistake
                 continue
             if "cannot access" in result and "No such file or directory" in result:
                 # Path-related errors
@@ -299,7 +292,6 @@ class AgentBase:
         # Convergence detection: track recent error patterns
         recent_error_patterns: list[str] = []
 
-        # Fix #1E: Reset truncation counter at start of run
         self._consecutive_truncations = 0
 
         self.logger.info(f"[{self.agent_role}] Starting task: {task.get('description', '')[:60]}...")
@@ -495,7 +487,6 @@ class AgentBase:
                     files_changed, iteration,
                 )
 
-            # Fix #2: Only increment useful_iterations for productive iterations
             useful_iterations += 1
 
         # Report useful vs total iteration counts
@@ -504,7 +495,6 @@ class AgentBase:
             files_changed, iteration)
 
     def _result(self, status: str, result: str, files_changed: set, iterations: int) -> dict:
-        # Fix #6B: For truncation_loop status, use a clear verdict
         verdict = "truncation_loop" if status == "truncation_loop" else status
         return {
             "status": status,
