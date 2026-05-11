@@ -34,7 +34,7 @@ async def main():
             print("""
 Usage: python main.py [OPTIONS] [PROMPT]
 
-  AI Coder — local multi-agent AI programmer and system assistant.
+  LILIA - Local Intent-driven Language Implementation Architecture
   Run with a prompt directly, or interactively if no prompt given.
 
 Options:
