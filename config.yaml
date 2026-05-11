@@ -1,9 +1,6 @@
 llm:
   base_url: "http://127.0.0.1:8080/v1"
-  #base_url: "http://127.0.0.1:11434/v1"
   model: "minimax-m2.7"
-  #model: "minimax-m2.7:cloud"
-
   api_key: "no-key-needed"
   context_size: 60000
   reasoning_format: "deepseek"
@@ -13,7 +10,7 @@ llm:
 
 agents:
   max_iterations: 100
-  # thinking_budget is ignored by llama-server for Qwen3.5 — model always reasons regardless
+ 
 
 workspace:
   root: "./workspace"
